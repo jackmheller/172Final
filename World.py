@@ -1,4 +1,4 @@
-from  AbstractWorld import AbstractWorld
+from Classes.AbstractWorld import AbstractWorld
 
 import pygame
 pygame.font.init() 
@@ -14,6 +14,9 @@ class World(AbstractWorld):
         self.black = (0,0,0)
         self.clock = pygame.time.Clock()
         self.font  = pygame.font.SysFont('Comic Sans MS', 30)
+        
+    def get_vert(self):
+        return self.Verticies
 
 
     def runSimulation(self, fps=1, initialTime=5*60, finalTime=23*60):

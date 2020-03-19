@@ -1,10 +1,9 @@
 '''
 Created on Mar 6, 2020
-
 @author: mayanzhe
 '''
 from collections import defaultdict 
-from AbstractWorld import AbstractWorld
+from Classes import AbstractWorld.AbstractWorld
 
 
 class Graph(AbstractWorld):
