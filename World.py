@@ -5,6 +5,7 @@ import numpy as np
 from networkx.classes.function import neighbors
 import queue
 import math
+from _collections import defaultdict
 pygame.font.init() 
 
 class World(AbstractWorld):
@@ -18,18 +19,27 @@ class World(AbstractWorld):
         self.black = (0,0,0)
         self.clock = pygame.time.Clock()
         self.font  = pygame.font.SysFont('Comic Sans MS', 30)
+        self.graph = self.get_neighbors()
+        self.coord = self.get_coordinates()
         
+    def get_coordinates(self):
+        coords = {}
+        for i in self.Verticies:
+            coords[i[0]] = (i[1],i[2])
+        return coords
+            
+    
     def get_vert(self):
         return self.Verticies
     
     def get_neighbors(self):
-        neighbors= {}
+        neighbors= defaultdict(list)
         for i in self.Verticies:
             for j in self.Edges:
-                if j[0] == i:
-                    neighbors[i].append(j[1])
-                if j[1] == i:
-                    neighbors[i].append(j[2])
+                if j[0] == i[0]:
+                    neighbors[(i[0])].append(j[1])
+                if j[1] == i[0]:
+                    neighbors[(i[0])].append(j[0])
         return neighbors
     
     def find_vehicle(self, trucks):
@@ -66,6 +76,7 @@ class World(AbstractWorld):
                                   ((self.width*self.Edges[j][3][k+1][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k+1][1]/maxY)*self.scale), 2)
     
         vehicles = {}
+        orderPaths = {}
         for i in range(len(trucks)):
             vehicles[round((trucks[i].ID)/3)] = queue.Queue()
         for t in range(initialTime,finalTime):    
@@ -75,15 +86,22 @@ class World(AbstractWorld):
             num = len(newOrders)
             startVerts = []
             endVerts = []
-            vehicle = self.find_vehicle(trucks)
+            #vehicle = self.find_vehicle(trucks)
             for i in range(num):
                 startVerts.append(random.choice(self.Verticies))
                 endVerts.append(random.choice(self.Verticies))
-            vehicles[i].put(self.path(vehicle.currentPossition[1], startVerts))
+            for i in range(len(newOrders)):
+                print(len(newOrders))
+                print(self.path(startVerts[i][0], endVerts[i][0]), startVerts[i][0], endVerts[i][0])
+                orderPaths[newOrders[i].id] = self.path(startVerts[i][0], endVerts[i][0])
+                print(orderPaths[newOrders[i].id])
+            #vehicles[i].put(self.path(vehicle.currentPossition[1], startVerts))
+            '''
             for j in range(len(startVerts)):
                 start = startVerts[j]
                 end = endVerts[j]
                 vehicles[i].put(self.path(start[0], end[0]))
+            '''
             print("New orders:")
             for c in newOrders:
                 print(c)
@@ -93,7 +111,7 @@ class World(AbstractWorld):
             textrect.centerx = 100
             textrect.centery = 30
             #self.screen.fill((255, 255, 255))
-            
+            '''
             for k in range(len(vehicles)):
                 vert = vehicles.get(queue)
                 if vert != None:
@@ -103,7 +121,26 @@ class World(AbstractWorld):
                                      ((self.width*x/maxX)*self.scale, 
                                       (self.height*y/maxY)*self.scale, 10, 10))
                     
-                
+            '''
+            for k in self.coord:
+                x = self.coord[k][0]
+                y = self.coord[k][1]
+                pygame.draw.rect(self.screen, (255,0,0), 
+                                 ((self.width*x/maxX)*self.scale, 
+                                  (self.height*y/maxY)*self.scale, 10, 10))
+            for k in orderPaths:
+                if orderPaths[k] != None:
+                    if not orderPaths[k].empty():
+                        currentVertex = orderPaths[k].get()
+                        print(currentVertex)
+                    if orderPaths[k].empty():
+                        orderPaths[k] = None
+                x = self.coord[currentVertex][0]
+                y = self.coord[currentVertex][1]
+                pygame.draw.rect(self.screen, (255,255,255), 
+                                 ((self.width*x/maxX)*self.scale, 
+                                  (self.height*y/maxY)*self.scale, 10, 10))
+            
             self.screen.blit(text, textrect)
  
             
@@ -119,8 +156,7 @@ class World(AbstractWorld):
             self.clock.tick(fps)
             
             
-    def path(self, start, end):
-        graph = self.get_neighbors()
+    def path2(self, start, end):        
         # maintain a queue of paths
         queue = []
         # push the first path into the queue
@@ -132,14 +168,32 @@ class World(AbstractWorld):
             node = path[-1]
             # path found
             if node == end:
+                print("path returned", path)
                 return path
             # enumerate all adjacent nodes, construct a new path and push it into the queue
-            for n in graph.get(node, []):
+            for n in (self.graph).get(node, []):
                 new_path = list(path)
                 new_path.append(n)
                 queue.append(new_path)
+                
+    def path(self, start, end):
+        q = queue.Queue()
+        visited = {}
+        visited[start] = True
+        q.put(start)
+        while not q.empty():
+            current = q.get()
+            if current == end:
+                q.put(current)
+                return q
+            for n in self.graph[current]:
+                if not n in visited:
+                    visited[n] = True  
+                    q.put(n)
     
-            
-            
-            
+    
+        
+                
+                
+                
             
