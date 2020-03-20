@@ -41,8 +41,8 @@ class AbstractWorld:
         np.random.seed(t)
         if t > 22*60:
             return newOrders
-        if np.random.rand() < 0.3:
-            n = np.random.randint(1,3)
+        if np.random.rand() < 0.1:
+            n = np.random.randint(1,2)
             np.random.shuffle(self.v)
             for j in range(n):
                 order = Order(self.orderId)

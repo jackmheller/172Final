@@ -21,6 +21,10 @@ class World(AbstractWorld):
         self.font  = pygame.font.SysFont('Comic Sans MS', 30)
         self.graph = self.get_neighbors()
         self.coord = self.get_coordinates()
+        '''
+        self.Edges = myE
+        self.Verticies = myV
+        '''
         
     def get_coordinates(self):
         coords = {}
@@ -40,6 +44,7 @@ class World(AbstractWorld):
                     neighbors[(i[0])].append(j[1])
                 if j[1] == i[0]:
                     neighbors[(i[0])].append(j[0])
+        print(neighbors)
         return neighbors
     
     def find_vehicle(self, trucks):
@@ -132,14 +137,16 @@ class World(AbstractWorld):
                 if orderPaths[k] != None:
                     if not orderPaths[k].empty():
                         currentVertex = orderPaths[k].get()
+                        x = self.coord[currentVertex][0]
+                        y = self.coord[currentVertex][1]
+                        pygame.time.delay(500)
+                        pygame.draw.rect(self.screen, (255,255,255), 
+                                 ((self.width*x/maxX)*self.scale, 
+                                  (self.height*y/maxY)*self.scale, 10, 10))
                         print(currentVertex)
                     if orderPaths[k].empty():
                         orderPaths[k] = None
-                x = self.coord[currentVertex][0]
-                y = self.coord[currentVertex][1]
-                pygame.draw.rect(self.screen, (255,255,255), 
-                                 ((self.width*x/maxX)*self.scale, 
-                                  (self.height*y/maxY)*self.scale, 10, 10))
+
             
             self.screen.blit(text, textrect)
  
@@ -177,6 +184,9 @@ class World(AbstractWorld):
                 queue.append(new_path)
                 
     def path(self, start, end):
+        start = 2
+        end = 1
+        # path expected = 2, 9, 67, 1
         q = queue.Queue()
         visited = {}
         visited[start] = True
@@ -185,15 +195,10 @@ class World(AbstractWorld):
             current = q.get()
             if current == end:
                 q.put(current)
+                print(list(q.queue))
                 return q
             for n in self.graph[current]:
                 if not n in visited:
                     visited[n] = True  
                     q.put(n)
     
-    
-        
-                
-                
-                
-            
