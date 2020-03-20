@@ -1,10 +1,9 @@
-
-
-from Vehicle import Vehicle
-from Order import Order
+from Classes.Vehicle import Vehicle
+from Classes.Order import Order
 
 import numpy as np
 import pickle
+
 class AbstractWorld:
     
     def __init__(self):
@@ -14,7 +13,7 @@ class AbstractWorld:
         self.Edges=[] 
         for edge in EF:
             self.Edges.append( [ edge[0] , edge[1] ,EF[edge][0 ],EF[edge][1 ],EF[edge][2 ] ])            
- 
+
         
         self.Verticies=[]
         for v in VF:
