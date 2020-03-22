@@ -6,6 +6,8 @@ from networkx.classes.function import neighbors
 import queue
 import math
 from _collections import defaultdict
+from anaconda_navigator.app import start
+from networkx.algorithms.assortativity import neighbor_degree
 pygame.font.init() 
 
 class World(AbstractWorld):
@@ -88,18 +90,19 @@ class World(AbstractWorld):
             print("\n\n Time: %02d:%02d"%(t/60, t%60))
             # each minute we can get a few new orders
             newOrders = self.getNewOrdersForGivenTime(t)
-            num = len(newOrders)
+            num = len(newOrders) #get number of new orders
+            # create lists to hold the starting and ending verticies of the orders
             startVerts = []
             endVerts = []
             #vehicle = self.find_vehicle(trucks)
-            for i in range(num):
-                startVerts.append(random.choice(self.Verticies))
-                endVerts.append(random.choice(self.Verticies))
+            for i in range(num): #go through the number of new orders
+                startVerts.append(random.choice(self.Verticies)) #random starting point
+                endVerts.append(random.choice(self.Verticies)) #random ending point
             for i in range(len(newOrders)):
-                print(len(newOrders))
-                print(self.path(startVerts[i][0], endVerts[i][0]), startVerts[i][0], endVerts[i][0])
-                orderPaths[newOrders[i].id] = self.path(startVerts[i][0], endVerts[i][0])
-                print(orderPaths[newOrders[i].id])
+                #print(len(newOrders))
+                #print(self.path(startVerts[i][0], endVerts[i][0]), startVerts[i][0], endVerts[i][0])
+                orderPaths[newOrders[i].id] = self.path(startVerts[i][0], endVerts[i][0]) #add the order id and path to the dictionary
+                #print(orderPaths[newOrders[i].id])
             #vehicles[i].put(self.path(vehicle.currentPossition[1], startVerts))
             '''
             for j in range(len(startVerts)):
@@ -127,25 +130,35 @@ class World(AbstractWorld):
                                       (self.height*y/maxY)*self.scale, 10, 10))
                     
             '''
-            for k in self.coord:
-                x = self.coord[k][0]
+            #go through each of the verticies
+            for k in self.coord: #for each vertex
+                x = self.coord[k][0] #get x and y coordinates
                 y = self.coord[k][1]
+                #redraw the red rectangle
                 pygame.draw.rect(self.screen, (255,0,0), 
                                  ((self.width*x/maxX)*self.scale, 
                                   (self.height*y/maxY)*self.scale, 10, 10))
+            #go through all the order paths
             for k in orderPaths:
-                if orderPaths[k] != None:
-                    if not orderPaths[k].empty():
-                        currentVertex = orderPaths[k].get()
-                        x = self.coord[currentVertex][0]
+                if orderPaths[k] != None: #if it isn't none
+                    if not orderPaths[k].empty(): #if it isn't empty
+                        currentVertex = orderPaths[k].get() #get the first item in the path
+                        x = self.coord[currentVertex][0] #get the coordinates of the current vertex
                         y = self.coord[currentVertex][1]
-                        pygame.time.delay(500)
-                        pygame.draw.rect(self.screen, (255,255,255), 
-                                 ((self.width*x/maxX)*self.scale, 
-                                  (self.height*y/maxY)*self.scale, 10, 10))
-                        print(currentVertex)
-                    if orderPaths[k].empty():
-                        orderPaths[k] = None
+                        pygame.time.delay(100)
+                        if not orderPaths[k].qsize() == 0: #if we aren't at the last vertex
+                            #draw a white square where the truck is
+                            pygame.draw.rect(self.screen, (255,255,255), 
+                                     ((self.width*x/maxX)*self.scale, 
+                                      (self.height*y/maxY)*self.scale, 10, 10))
+                            print(currentVertex)
+                        else: #if we are at the last vertex
+                            #print a green square so we know it's done
+                            pygame.draw.rect(self.screen, (0,255,0), 
+                                     ((self.width*x/maxX)*self.scale, 
+                                      (self.height*y/maxY)*self.scale, 10, 10))
+                    if orderPaths[k].empty(): #if the queue is empty
+                        orderPaths[k] = None #set it as none so it isn't looked at next time
 
             
             self.screen.blit(text, textrect)
@@ -161,44 +174,28 @@ class World(AbstractWorld):
             for event in pygame.event.get():
                 pass   
             self.clock.tick(fps)
-            
-            
-    def path2(self, start, end):        
-        # maintain a queue of paths
-        queue = []
-        # push the first path into the queue
-        queue.append([start])
-        while queue:
-            # get the first path from the queue
-            path = queue.pop(0)
-            # get the last node from the path
-            node = path[-1]
-            # path found
-            if node == end:
-                print("path returned", path)
-                return path
-            # enumerate all adjacent nodes, construct a new path and push it into the queue
-            for n in (self.graph).get(node, []):
-                new_path = list(path)
-                new_path.append(n)
-                queue.append(new_path)
                 
+    
     def path(self, start, end):
-        start = 2
-        end = 1
-        # path expected = 2, 9, 67, 1
-        q = queue.Queue()
-        visited = {}
-        visited[start] = True
-        q.put(start)
-        while not q.empty():
-            current = q.get()
-            if current == end:
-                q.put(current)
-                print(list(q.queue))
-                return q
-            for n in self.graph[current]:
-                if not n in visited:
-                    visited[n] = True  
-                    q.put(n)
+        q = [[start]] #create a list that starts with just the start node
+        visited = set() #create a set to hold the visited nodes
+        
+        while q: #while there are still lists in the queue
+            path = q.pop(0) #path is the first element
+            
+            vertex = path[-1] #the vertex is the last point in the path
+            
+            if vertex == end: #if we are at the end
+                print ("start: ", start)
+                print ("end: ", end)
+                print ("path: ", path)
+                pathq = queue.Queue() #create a queue object to hold path
+                pathq.queue = queue.deque(path) #convert list to queue object
+                return pathq #return the queue
+            elif vertex not in visited: #if the vertex hasn't been visited
+                for neighbor in self.graph[vertex]: #go through the neighbors of the vertex
+                    new_path= list(path) #make path into a list
+                    new_path.append(neighbor) #add the neighbor to the new path
+                    q.append(new_path) #put this path with a neighbor into the queue
+            visited.add(vertex) #note that we visited the vertex
     
