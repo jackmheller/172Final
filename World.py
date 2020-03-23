@@ -100,8 +100,8 @@ class World(AbstractWorld):
             
             for i in newOrders: #go through the new orders
                 #set the starting and ending vertex (random)
-                i.setStart(random.choice(self.Verticies)[0])
-                i.setEnd(random.choice(self.Verticies)[0])
+                i.setStart(random.choice(self.Verticies))
+                i.setEnd(random.choice(self.Verticies))
                 i.setPath(self.graph) #create a path for the order
                 currentOrders.append(i) #add the order to the list of current orders
             

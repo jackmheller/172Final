@@ -26,7 +26,9 @@ class Order(AbstractOrder):
         self.end = vertex
         
     def setPath(self, graph):
-        q = [[self.start]] #create a list that starts with just the start node
+        s = self.start[0]
+        e = self.end[0]
+        q = [[s]] #create a list that starts with just the start node
         visited = set() #create a set to hold the visited nodes
         
         while q: #while there are still lists in the queue
@@ -34,10 +36,7 @@ class Order(AbstractOrder):
             
             vertex = path[-1] #the vertex is the last point in the path
             
-            if vertex == self.end: #if we are at the end
-                print ("start: ", self.start)
-                print ("end: ", self.end)
-                print ("path: ", path)
+            if vertex == e: #if we are at the end
                 self.path = queue.Queue() #create a queue object to hold path
                 self.path.queue = queue.deque(path) #convert list to queue object
                 return #return the queue
