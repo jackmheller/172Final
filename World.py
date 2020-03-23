@@ -84,7 +84,6 @@ class World(AbstractWorld):
                                   ((self.width*self.Edges[j][3][k+1][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k+1][1]/maxY)*self.scale), 2)
     
         vehicles = {}
-        orderPaths = {}
         
         currentOrders = []
         
@@ -161,29 +160,6 @@ class World(AbstractWorld):
                 else: #if the queue is empty
                     currentOrders.remove(k) #remove this order because it is done
                     
-            '''
-            for k in orderPaths:
-                if orderPaths[k] != None: #if it isn't none
-                    if not orderPaths[k].empty(): #if it isn't empty
-                        currentVertex = orderPaths[k].get() #get the first item in the path
-                        x = self.coord[currentVertex][0] #get the coordinates of the current vertex
-                        y = self.coord[currentVertex][1]
-                        pygame.time.delay(100)
-                        if not orderPaths[k].qsize() == 0: #if we aren't at the last vertex
-                            #draw a white square where the truck is
-                            pygame.draw.rect(self.screen, (255,255,255), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
-                            print(currentVertex)
-                        else: #if we are at the last vertex
-                            #print a green square so we know it's done
-                            pygame.draw.rect(self.screen, (0,255,0), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
-                    if orderPaths[k].empty(): #if the queue is empty
-                        orderPaths[k] = None #set it as none so it isn't looked at next time
-
-            '''
             self.screen.blit(text, textrect)
  
             
@@ -198,27 +174,3 @@ class World(AbstractWorld):
                 pass   
             self.clock.tick(fps)
                 
-    
-    def path(self, start, end):
-        q = [[start]] #create a list that starts with just the start node
-        visited = set() #create a set to hold the visited nodes
-        
-        while q: #while there are still lists in the queue
-            path = q.pop(0) #path is the first element
-            
-            vertex = path[-1] #the vertex is the last point in the path
-            
-            if vertex == end: #if we are at the end
-                print ("start: ", start)
-                print ("end: ", end)
-                print ("path: ", path)
-                pathq = queue.Queue() #create a queue object to hold path
-                pathq.queue = queue.deque(path) #convert list to queue object
-                return pathq #return the queue
-            elif vertex not in visited: #if the vertex hasn't been visited
-                for neighbor in self.graph[vertex]: #go through the neighbors of the vertex
-                    new_path= list(path) #make path into a list
-                    new_path.append(neighbor) #add the neighbor to the new path
-                    q.append(new_path) #put this path with a neighbor into the queue
-            visited.add(vertex) #note that we visited the vertex
-    
