@@ -9,6 +9,7 @@ from _collections import defaultdict
 from anaconda_navigator.app import start
 from networkx.algorithms.assortativity import neighbor_degree
 pygame.font.init() 
+from Classes.Order import Order
 
 class World(AbstractWorld):
     
@@ -84,32 +85,29 @@ class World(AbstractWorld):
     
         vehicles = {}
         orderPaths = {}
+        
+        currentOrders = []
+        
         for i in range(len(trucks)):
             vehicles[round((trucks[i].ID)/3)] = queue.Queue()
+        
         for t in range(initialTime,finalTime):    
             print("\n\n Time: %02d:%02d"%(t/60, t%60))
             # each minute we can get a few new orders
             newOrders = self.getNewOrdersForGivenTime(t)
             num = len(newOrders) #get number of new orders
             # create lists to hold the starting and ending verticies of the orders
-            startVerts = []
-            endVerts = []
-            #vehicle = self.find_vehicle(trucks)
-            for i in range(num): #go through the number of new orders
-                startVerts.append(random.choice(self.Verticies)) #random starting point
-                endVerts.append(random.choice(self.Verticies)) #random ending point
-            for i in range(len(newOrders)):
-                #print(len(newOrders))
-                #print(self.path(startVerts[i][0], endVerts[i][0]), startVerts[i][0], endVerts[i][0])
-                orderPaths[newOrders[i].id] = self.path(startVerts[i][0], endVerts[i][0]) #add the order id and path to the dictionary
-                #print(orderPaths[newOrders[i].id])
+            
+            for i in newOrders: #go through the new orders
+                #set the starting and ending vertex (random)
+                i.setStart(random.choice(self.Verticies)[0])
+                i.setEnd(random.choice(self.Verticies)[0])
+                i.setPath(self.graph) #create a path for the order
+                currentOrders.append(i) #add the order to the list of current orders
+            
             #vehicles[i].put(self.path(vehicle.currentPossition[1], startVerts))
-            '''
-            for j in range(len(startVerts)):
-                start = startVerts[j]
-                end = endVerts[j]
-                vehicles[i].put(self.path(start[0], end[0]))
-            '''
+            
+            #print out the new orders
             print("New orders:")
             for c in newOrders:
                 print(c)
@@ -130,6 +128,7 @@ class World(AbstractWorld):
                                       (self.height*y/maxY)*self.scale, 10, 10))
                     
             '''
+            #REDRAWING THE VERTICES AS RED
             #go through each of the verticies
             for k in self.coord: #for each vertex
                 x = self.coord[k][0] #get x and y coordinates
@@ -139,6 +138,30 @@ class World(AbstractWorld):
                                  ((self.width*x/maxX)*self.scale, 
                                   (self.height*y/maxY)*self.scale, 10, 10))
             #go through all the order paths
+            
+            #DRAWING THE MOVING ORDERS AS WHITE
+            for k in currentOrders: #go through current orders
+                path = k.getPath() #get the path of the order
+                if not path.empty(): #if the path isn't done
+                    currentVertex = path.get() #get the first item in the path
+                    x = self.coord[currentVertex][0] #get the coordinates of the current vertex
+                    y = self.coord[currentVertex][1]
+                    pygame.time.delay(100)
+                    if not path.qsize() == 0: #if we aren't at the last vertex
+                            #draw a white square where the truck is
+                        pygame.draw.rect(self.screen, (255,255,255), 
+                                     ((self.width*x/maxX)*self.scale, 
+                                      (self.height*y/maxY)*self.scale, 10, 10))
+                        print(currentVertex)
+                    else: #if we are at the last vertex
+                            #print a green square so we know it's done
+                        pygame.draw.rect(self.screen, (0,255,0), 
+                                     ((self.width*x/maxX)*self.scale, 
+                                      (self.height*y/maxY)*self.scale, 10, 10))
+                else: #if the queue is empty
+                    currentOrders.remove(k) #remove this order because it is done
+                    
+            '''
             for k in orderPaths:
                 if orderPaths[k] != None: #if it isn't none
                     if not orderPaths[k].empty(): #if it isn't empty
@@ -160,7 +183,7 @@ class World(AbstractWorld):
                     if orderPaths[k].empty(): #if the queue is empty
                         orderPaths[k] = None #set it as none so it isn't looked at next time
 
-            
+            '''
             self.screen.blit(text, textrect)
  
             
