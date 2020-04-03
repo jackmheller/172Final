@@ -1,8 +1,12 @@
 #from Classes.Vehicle import Vehicle
 from Classes.AbstractOrder import AbstractOrder
-from random import random
+import random
 import numpy as np
 import queue
+import heapq
+from _collections import defaultdict
+from collections import deque
+from Classes.ProductionLines import ProductionLines
 
 
 class Order(AbstractOrder):
@@ -12,38 +16,69 @@ class Order(AbstractOrder):
         self.start =  None
         self.end = None
         self.path = None
-        
+        self.locationPath = [] #list to hold path of locations order must go
+        self.truck = None
+    
+    #getters and setters for various attributes
     def getID(self):
         return self.id
     
     def getPath(self):
         return self.path
     
+    def getStart(self):
+        return self.start
+    
+    def getFinalLocation(self):
+        return self.finalLocation
+    
+    def getProductionProcess(self):
+        return self.productionProcess
+    
+    def getEnd(self):
+        return self.end
+    
+    def getLocationPath(self):
+        return self.locationPath
+    
+    def getGeneralPath(self):
+        return self.generalPath
+    
+    def getTruck(self):
+        return self.truck
+    
     def setStart(self, vertex):
-        self.start = vertex
+        self.start = vertex[0]
         
     def setEnd(self, vertex):
         self.end = vertex
         
-    def setPath(self, graph):
-        s = self.start[0]
-        e = self.end[0]
-        q = [[s]] #create a list that starts with just the start node
-        visited = set() #create a set to hold the visited nodes
+    def setPath(self, path): #turn the path into a queue and set it
+        #pathQ = deque(path)
+        '''
+        pathQ = queue.Queue() #create a queue object to hold path
+        pathQ.queue = queue.deque(path) #convert list to queue object
+        '''
+        self.path = path
         
-        while q: #while there are still lists in the queue
-            path = q.pop(0) #path is the first element
+    def setTruck(self, trucks): #method to pick a vehicle to carry the order
+        self.truck = random.choice(trucks) #randomly choose a truck
+        
+    def setLocationPath(self, productionLines):
+        #put in the truck's initial location
+        if len(self.truck.get_path()) == 0: #if the path isn't already on the go
+            self.locationPath.append(self.truck.get_position()) #it will start at it's current position
+        else: #if it is already in route somewhere
+            self.locationPath.append(self.truck.get_path()[-1]) #it will start when it ends it's last route
+        #put in the start
+        self.locationPath.append(self.start)
+        #put in each of the lines
+        for i in self.getProductionProcess(): #go through each step of the production process
+            line = random.choice(productionLines[i['processinLine']]) #randomly choose a facility
+            assignedLineLocation = line.get_location() #get the location of the assigned line
+            self.locationPath.append(assignedLineLocation) #append location of line
+            for j in range(i['processingTime']): #add the location multiple times to represent processing time
+                self.locationPath.append(assignedLineLocation)
+        #put in the end
+        self.locationPath.append(self.end)
             
-            vertex = path[-1] #the vertex is the last point in the path
-            
-            if vertex == e: #if we are at the end
-                self.path = queue.Queue() #create a queue object to hold path
-                self.path.queue = queue.deque(path) #convert list to queue object
-                return #return the queue
-            elif vertex not in visited: #if the vertex hasn't been visited
-                for neighbor in graph[vertex]: #go through the neighbors of the vertex
-                    new_path= list(path) #make path into a list
-                    new_path.append(neighbor) #add the neighbor to the new path
-                    q.append(new_path) #put this path with a neighbor into the queue
-            visited.add(vertex) #note that we visited the vertex
-
