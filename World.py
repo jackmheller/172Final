@@ -43,6 +43,7 @@ class World(AbstractWorld):
         costs = defaultdict(lambda: 10000) #default dic w lambda at "infinity"
         for i in self.Edges: #go through edges
             costs[(i[0],i[1])] = i[2] #put in the cost
+            costs[(i[1],i[0])] = i[2]
         for i in self.Verticies: #go through verticies
             costs[(i[0], i[0])] = 0 #cost from self to self
         return costs #return the dictionary
@@ -185,7 +186,7 @@ class World(AbstractWorld):
                             del tempPath[0] #remove first node in path so we don't double count it
                         fullPath += tempPath #combine the temporary path with the full path
                 i.setPath(fullPath)
-                (i.getTruck()).add_path(fullPath) #add the path for the order to the path for the truck
+                (i.getTruck()).add_path(fullPath, self.costs, self.coord) #add the path for the order to the path for the truck
                 currentOrders.append(i) #add the order to the list of current orders
             
             #print out the new orders
@@ -243,31 +244,30 @@ class World(AbstractWorld):
                     currentOrders.remove(k) #remove this order because it is done
              '''       
             #DRAWING THE MOVING ORDERS AS WHITE
-            for k in currentOrders: #go through current orders
-                orderID = k.getID() #get the ID of the order
-                truck = k.getTruck() #get the truck carrying the order
-                path = truck.get_path() #get the path of the truck as a queue
-                orderPath = k.getPath() #get the path of the order
+            for k in trucks: #go through current orders
+                #orderID = k.getID() #get the ID of the order
+                #truck = k.getTruck() #get the truck carrying the order
+                path = k.get_coordPath() #get the path of the truck as a queue
+                #orderPath = k.getPath() #get the path of the order
                 if len(path) != 0: #if the truck's path isn't empty
                     currentVertex = path.popleft() #get the first item in the path
-                    orderPath.popleft() #also remove the first element from the order path
-                    truck.set_position(currentVertex) #update position of the truck
-                    x = self.coord[currentVertex][0] #get the coordinates of the current vertex
-                    y = self.coord[currentVertex][1]
+                    #orderPath.popleft() #also remove the first element from the order path
+                    k.set_position(currentVertex) #update position of the truck
+                    x = currentVertex[0] #get the coordinates of the current vertex
+                    y = currentVertex[1]
                     #pygame.time.delay(500)
-                    if len(orderPath) != 0: #if we aren't at the last vertex
+                    #if len(orderPath) != 0: #if we aren't at the last vertex
                             #draw a white square where the truck is
-                        pygame.draw.rect(self.screen, (255,255,255), 
+                    pygame.draw.rect(self.screen, (255,255,255), 
                                      ((self.width*x/maxX)*self.scale, 
                                       (self.height*y/maxY)*self.scale, 10, 10))
-                        print(currentVertex)
-                    else: #if we are at the last vertex in an order
+                    #else: #if we are at the last vertex in an order
                             #print a green square so we know it's done
-                        pygame.draw.rect(self.screen, (0,255,0), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
-                        truck.remove_order(orderID) #remove the order from the truck
-                        currentOrders.remove(k) #remove this order because it is done
+                        #pygame.draw.rect(self.screen, (0,255,0), 
+                                     #((self.width*x/maxX)*self.scale, 
+                                      #(self.height*y/maxY)*self.scale, 10, 10))
+                        #truck.remove_order(orderID) #remove the order from the truck
+                        #currentOrders.remove(k) #remove this order because it is done
                 '''
                 else: #if the queue is empty
                     currentOrders.remove(k) #remove this order because it is done
@@ -282,8 +282,8 @@ class World(AbstractWorld):
             accordingly
             '''
      
-            pygame.display.update()    
+            pygame.display.update()
             for event in pygame.event.get():
                 pass   
             self.clock.tick(fps)
-                
+    
