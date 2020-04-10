@@ -24,24 +24,33 @@ class Vehicle(AbstractVehicle):
     def get_capacity(self):
         return self.capacity
     
-    def get_edge_points(self, currentVertex, nextVertex, cost, coord): #get points to animate between vertices
+    def get_current_order(self):
+        order = self.orders.popleft()
+        return order
+    
+    def get_edge_points(self, currentVertex, nextVertex, cost, coord, last): #get points to animate between vertices
         points = []
         xCurrent = coord[currentVertex][0] #get the coordinates of the current vertex
         yCurrent = coord[currentVertex][1]
         xNext = coord[nextVertex][0] #get coordinates of next vertex
         yNext = coord[nextVertex][1]
         if currentVertex == nextVertex:
-            points.append((xCurrent, yCurrent))
+            points.append([(xCurrent, yCurrent),0])
             return points
         direction = (xNext - xCurrent, yNext - yCurrent) #slope of line
         if cost[(currentVertex, nextVertex)] == 1:
-            points.append((xCurrent, yCurrent))
-            points.append((xNext, yNext))
+            points.append([(xCurrent, yCurrent), 0])
+            points.append([(xNext, yNext), 0])
             return points
         for i in range(cost[(currentVertex, nextVertex)] - 1):
-            xLocation = xCurrent + (i+1)*direction[0]/cost[(currentVertex, nextVertex)] #current location
-            yLocation = yCurrent + (i+1)*direction[1]/cost[(currentVertex, nextVertex)]
-            points.append((xLocation, yLocation))
+            if not last:
+                xLocation = xCurrent + (i+1)*direction[0]/cost[(currentVertex, nextVertex)] #current location
+                yLocation = yCurrent + (i+1)*direction[1]/cost[(currentVertex, nextVertex)]
+                points.append([(xLocation, yLocation), 0])
+            else:
+                xLocation = xCurrent + (i+1)*direction[0]/cost[(currentVertex, nextVertex)] #current location
+                yLocation = yCurrent + (i+1)*direction[1]/cost[(currentVertex, nextVertex)]
+                points.append([(xLocation, yLocation), 1])
         return points
             
     def add_path(self, newPath, cost, coord):
@@ -50,7 +59,10 @@ class Vehicle(AbstractVehicle):
         fullPath = deque()
         for n in range(len(self.path) - 1):
             tempPath = deque()
-            tempPath = self.get_edge_points(self.path[n], self.path[n+1], cost, coord)
+            if n != len(self.path)-1:
+                tempPath = self.get_edge_points(self.path[n], self.path[n+1], cost, coord, False)
+            else:
+                tempPath = self.get_edge_points(self.path[n], self.path[n+1], cost, coord, True)
             print("temp", tempPath)
             print("n", self.path[n])
             print("n+1", self.path[n+1])

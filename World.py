@@ -125,7 +125,7 @@ class World(AbstractWorld):
     def find_vehicle(self, trucks):
         return random.choice(trucks)
 
-    def runSimulation(self, fps=5, initialTime=5*60, finalTime=23*60):
+    def runSimulation(self, fps=10, initialTime=5*60, finalTime=23*60):
 
         '''
         This will give you a list of ALL cars which are in the system
@@ -158,6 +158,7 @@ class World(AbstractWorld):
         
         currentOrders = [] #list to hold all the current orders
         currentTrucks = []
+        finishedOrders = []
         
         for i in range(len(trucks)):
             vehicles[round((trucks[i].ID)/3)] = queue.Queue()
@@ -200,17 +201,6 @@ class World(AbstractWorld):
             textrect.centerx = 100
             textrect.centery = 30
             #self.screen.fill((255, 255, 255))
-            '''
-            for k in range(len(vehicles)):
-                vert = vehicles.get(queue)
-                if vert != None:
-                    x = self.Verticies[vert][1]
-                    y = self.Verticies[vert][2]
-                    pygame.draw.rect(self.screen, (255,255,255), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
-                    
-            '''
             #REDRAWING THE VERTICES AS RED
             #go through each of the verticies
             self.screen.fill((0,0,0))
@@ -226,30 +216,7 @@ class World(AbstractWorld):
                     pygame.draw.line(self.screen, (255,0,0), 
                                  ((self.width*self.Edges[j][3][k][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k][1]/maxY)*self.scale), 
                                   ((self.width*self.Edges[j][3][k+1][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k+1][1]/maxY)*self.scale), 2)
-            #go through all the order paths
-            '''
-            #DRAWING THE MOVING ORDERS AS WHITE
-            for k in currentOrders: #go through current orders
-                path = k.getPath() #get the path of the order
-                if not path.empty(): #if the path isn't done
-                    currentVertex = path.get() #get the first item in the path
-                    x = self.coord[currentVertex][0] #get the coordinates of the current vertex
-                    y = self.coord[currentVertex][1]
-                    #pygame.time.delay(500)
-                    if not path.qsize() == 0: #if we aren't at the last vertex
-                            #draw a white square where the truck is
-                        pygame.draw.rect(self.screen, (255,255,255), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
-                        print(currentVertex)
-                    else: #if we are at the last vertex
-                            #print a green square so we know it's done
-                        pygame.draw.rect(self.screen, (0,255,0), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
-                else: #if the queue is empty
-                    currentOrders.remove(k) #remove this order because it is done
-             '''       
+            #go through all the order paths    
             #DRAWING THE MOVING ORDERS AS WHITE
             for k in trucks: #go through current orders
                 #orderID = k.getID() #get the ID of the order
@@ -257,7 +224,8 @@ class World(AbstractWorld):
                 path = k.get_coordPath() #get the path of the truck as a queue
                 #orderPath = k.getPath() #get the path of the order
                 if len(path) != 0: #if the truck's path isn't empty
-                    currentVertex = path.popleft() #get the first item in the path
+                    tempPos = path.popleft() #get the first item in the path
+                    currentVertex = tempPos[0]
                     #orderPath.popleft() #also remove the first element from the order path
                     k.set_position(currentVertex) #update position of the truck
                     x = currentVertex[0] #get the coordinates of the current vertex
@@ -267,17 +235,13 @@ class World(AbstractWorld):
                             #draw a white square where the truck is
                     self.screen.blit(self.van, ((self.width*x/maxX)*self.scale, 
                                       (self.height*y/maxY)*self.scale,))
-                    #else: #if we are at the last vertex in an order
-                            #print a green square so we know it's done
-                        #pygame.draw.rect(self.screen, (0,255,0), 
-                                     #((self.width*x/maxX)*self.scale, 
-                                      #(self.height*y/maxY)*self.scale, 10, 10))
-                        #truck.remove_order(orderID) #remove the order from the truck
-                        #currentOrders.remove(k) #remove this order because it is done
-                '''
-                else: #if the queue is empty
-                    currentOrders.remove(k) #remove this order because it is done
-                '''  
+                    if tempPos[1] == 1: #if at the last point in an order
+                        orderID = k.get_current_order()
+                        del currentOrders [orderID]
+                        finishedOrders.append(orderID)
+            print("Finished orders: ", finishedOrders)
+                        
+
             self.screen.blit(text, textrect)
             print(self.Edges)
  
