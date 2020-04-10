@@ -81,4 +81,3 @@ class Order(AbstractOrder):
                 self.locationPath.append(assignedLineLocation)
         #put in the end
         self.locationPath.append(self.end)
-            

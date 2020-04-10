@@ -39,8 +39,8 @@ class Vehicle(AbstractVehicle):
             points.append((xNext, yNext))
             return points
         for i in range(cost[(currentVertex, nextVertex)] - 1):
-            xLocation = xCurrent - (i+1)*direction[0]/cost[(currentVertex, nextVertex)] #current location
-            yLocation = yCurrent - (i+1)*direction[1]/cost[(currentVertex, nextVertex)]
+            xLocation = xCurrent + (i+1)*direction[0]/cost[(currentVertex, nextVertex)] #current location
+            yLocation = yCurrent + (i+1)*direction[1]/cost[(currentVertex, nextVertex)]
             points.append((xLocation, yLocation))
         return points
             
