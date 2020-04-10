@@ -32,6 +32,8 @@ class World(AbstractWorld):
         self.costs = self.get_costs() #dictionary with key - set of nodes, value - cost to go between
         self.preList = self.set_paths() #dictionary with key - start node, value - predacessor dictionary to recreate paths
         self.productionLines = self.set_productionLines2(self.getProductionLines()) #dictionary with key - type of line and value - list with [ID, location, material capacity]
+        self.van = pygame.image.load("mysteryMachine.png").convert()
+        self.van = pygame.transform.scale(self.van, (10,10))
         
     def get_coordinates(self): #method to create the coordinate dictionary
         coords = {} #initialize
@@ -47,7 +49,6 @@ class World(AbstractWorld):
         for i in self.Verticies: #go through verticies
             costs[(i[0], i[0])] = 0 #cost from self to self
         return costs #return the dictionary
-    
     
     def get_vert(self):
         return self.Verticies
@@ -212,6 +213,7 @@ class World(AbstractWorld):
             '''
             #REDRAWING THE VERTICES AS RED
             #go through each of the verticies
+            self.screen.fill((0,0,0))
             for k in self.coord: #for each vertex
                 x = self.coord[k][0] #get x and y coordinates
                 y = self.coord[k][1]
@@ -219,6 +221,11 @@ class World(AbstractWorld):
                 pygame.draw.rect(self.screen, (255,0,0), 
                                  ((self.width*x/maxX)*self.scale, 
                                   (self.height*y/maxY)*self.scale, 10, 10))
+            for j in range(len(self.Edges)):
+                for k in range(len(self.Edges[j][3]) - 1):
+                    pygame.draw.line(self.screen, (255,0,0), 
+                                 ((self.width*self.Edges[j][3][k][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k][1]/maxY)*self.scale), 
+                                  ((self.width*self.Edges[j][3][k+1][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k+1][1]/maxY)*self.scale), 2)
             #go through all the order paths
             '''
             #DRAWING THE MOVING ORDERS AS WHITE
@@ -258,9 +265,8 @@ class World(AbstractWorld):
                     #pygame.time.delay(500)
                     #if len(orderPath) != 0: #if we aren't at the last vertex
                             #draw a white square where the truck is
-                    pygame.draw.rect(self.screen, (255,255,255), 
-                                     ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale, 10, 10))
+                    self.screen.blit(self.van, ((self.width*x/maxX)*self.scale, 
+                                      (self.height*y/maxY)*self.scale,))
                     #else: #if we are at the last vertex in an order
                             #print a green square so we know it's done
                         #pygame.draw.rect(self.screen, (0,255,0), 
@@ -271,9 +277,9 @@ class World(AbstractWorld):
                 '''
                 else: #if the queue is empty
                     currentOrders.remove(k) #remove this order because it is done
-                '''
-                    
+                '''  
             self.screen.blit(text, textrect)
+            print(self.Edges)
  
             
             '''
