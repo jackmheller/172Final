@@ -40,7 +40,7 @@ class World(AbstractWorld):
         for i in self.Verticies: #go through verticies
             coords[i[0]] = (i[1],i[2]) #add coordinates
         return coords #return the dictionary
-    
+   
     def get_costs(self): #method to create costs dictionary
         costs = defaultdict(lambda: 10000) #default dic w lambda at "infinity"
         for i in self.Edges: #go through edges
@@ -145,7 +145,7 @@ class World(AbstractWorld):
         maxX = max(listX)
         maxY = max(listY)
         for i in range(len(self.Verticies)):
-            pygame.draw.rect(self.screen, (255,0,0), ((self.width*self.Verticies[i][1]/maxX)*self.scale, (self.height*self.Verticies[i][2]/maxY)*self.scale, 10, 10))
+            pygame.draw.rect(self.screen, (255,0,0), ((self.width*self.Verticies[i][1]/maxX)*self.scale-5, (self.height*self.Verticies[i][2]/maxY)*self.scale-5, 10, 10))
           
         for j in range(len(self.Edges)):
             for k in range(len(self.Edges[j][3]) - 1):
@@ -209,8 +209,8 @@ class World(AbstractWorld):
                 y = self.coord[k][1]
                 #redraw the red rectangle
                 pygame.draw.rect(self.screen, (255,0,0), 
-                                 ((self.width*x/maxX)*self.scale, 
-                                  (self.height*y/maxY)*self.scale, 10, 10))
+                                 ((self.width*x/maxX)*self.scale-5, 
+                                  (self.height*y/maxY)*self.scale-5, 10, 10))
             for j in range(len(self.Edges)):
                 for k in range(len(self.Edges[j][3]) - 1):
                     pygame.draw.line(self.screen, (255,0,0), 
@@ -233,8 +233,8 @@ class World(AbstractWorld):
                     #pygame.time.delay(500)
                     #if len(orderPath) != 0: #if we aren't at the last vertex
                             #draw a white square where the truck is
-                    self.screen.blit(self.van, ((self.width*x/maxX)*self.scale, 
-                                      (self.height*y/maxY)*self.scale,))
+                    self.screen.blit(self.van, ((self.width*x/maxX)*self.scale-5, 
+                                      (self.height*y/maxY)*self.scale-5,))
                     if tempPos[1] == 1: #if at the last point in an order
                         orderID = k.get_current_order()
                         del currentOrders [orderID]
