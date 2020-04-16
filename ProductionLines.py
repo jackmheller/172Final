@@ -12,8 +12,8 @@ class ProductionLines():
         self.location = location
         self.capacity = capacity
         self.busy = False
-        self.currentMaterials = self.capacity
-        self.locationPath = [] #list to hold path of locations order must go
+        self.currentMaterials = 0
+        #self.locationPath = [] #list to hold path of locations order must go
         self.linesDictionary[self.type].append(self)
         
     def get_linesdic(self): #return the dictionary of lines

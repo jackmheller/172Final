@@ -10,7 +10,6 @@ from Classes.ProductionLines import ProductionLines
 
 
 class Order(AbstractOrder):
-    
     def __init__(self, id):
         AbstractOrder.__init__(self, id)
         self.start =  None
@@ -64,20 +63,8 @@ class Order(AbstractOrder):
     def setTruck(self, trucks): #method to pick a vehicle to carry the order
         self.truck = random.choice(trucks) #randomly choose a truck
         
-    def setLocationPath(self, productionLines):
-        #put in the truck's initial location
-        if len(self.truck.get_path()) == 0: #if the path isn't already on the go
-            self.locationPath.append(self.truck.get_position()) #it will start at it's current position
-        else: #if it is already in route somewhere
-            self.locationPath.append(self.truck.get_path()[-1]) #it will start when it ends it's last route
-        #put in the start
-        self.locationPath.append(self.start)
-        #put in each of the lines
-        for i in self.getProductionProcess(): #go through each step of the production process
-            line = random.choice(productionLines[i['processinLine']]) #randomly choose a facility
-            assignedLineLocation = line.get_location() #get the location of the assigned line
-            self.locationPath.append(assignedLineLocation) #append location of line
-            for j in range(i['processingTime']): #add the location multiple times to represent processing time
-                self.locationPath.append(assignedLineLocation)
-        #put in the end
-        self.locationPath.append(self.end)
+    def setTruck2(self, truck):
+        self.truck = truck
+        
+    def setLocationPath(self, path):
+        self.locationPath = path
