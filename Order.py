@@ -17,6 +17,9 @@ class Order(AbstractOrder):
         self.path = None
         self.locationPath = [] #list to hold path of locations order must go
         self.truck = None
+        self.cost = 0
+        self.startTime = None
+        self.coordPath = None
     
     #getters and setters for various attributes
     def getID(self):
@@ -25,8 +28,14 @@ class Order(AbstractOrder):
     def getPath(self):
         return self.path
     
+    def getCoordPath(self):
+        return self.coordPath
+    
     def getStart(self):
         return self.start
+    
+    def setCoordPath(self, path):
+        self.coordPath = path
     
     def getFinalLocation(self):
         return self.finalLocation
@@ -46,6 +55,18 @@ class Order(AbstractOrder):
     def getTruck(self):
         return self.truck
     
+    def set_start_time(self, time):
+        self.startTime = time
+        
+    def get_start_time(self):
+        return self.startTime
+    
+    def get_cost(self):
+        return self.cost
+    
+    def add_cost(self, cost):
+        self.cost = self.cost+cost
+    
     def setStart(self, vertex):
         self.start = vertex[0]
         
@@ -60,10 +81,7 @@ class Order(AbstractOrder):
         '''
         self.path = path
         
-    def setTruck(self, trucks): #method to pick a vehicle to carry the order
-        self.truck = random.choice(trucks) #randomly choose a truck
-        
-    def setTruck2(self, truck):
+    def setTruck(self, truck):
         self.truck = truck
         
     def setLocationPath(self, path):

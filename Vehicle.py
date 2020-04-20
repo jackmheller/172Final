@@ -58,7 +58,7 @@ class Vehicle(AbstractVehicle):
             points.append([(xNext, yNext), 2]) #append coordinates of point with 2 (at vertex AND end of order)
         return points
             
-    def add_path(self, newPath, cost, coord): #method to add the path of vertices/coordinates for each new order
+    def add_path(self, newPath, cost, coord, id): #method to add the path of vertices/coordinates for each new order
         newPath.popleft() #remove the duplicate element
         self.path += newPath #add the new path to the path of the truck
         fullPath = deque() #deque to hold the full coordinate path of the new path
@@ -72,6 +72,16 @@ class Vehicle(AbstractVehicle):
                 del tempPath[0] #delete the first element so it's not double counted
             fullPath += tempPath #add temp path to full path
         self.coordPath += fullPath #add the full path to the coordinates the truck goes over
+        return fullPath
+        '''
+        count = 0
+        for i in fullPath:
+            if i[1] == 2:
+                count+=1
+        if count > 1:
+            print(" ORDER ", id, " COORD PATH: ", fullPath)
+            self.coordPath[2000000] = 4
+        '''
         
     def get_path(self): #return the path of vertices for the truck
         return self.path

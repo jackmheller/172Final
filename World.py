@@ -27,28 +27,65 @@ class World(AbstractWorld):
         self.pred = {} #holds paths between all sets of nodes
         self.graph = self.get_neighbors() #dictionary with key - node, value - list of neighbors
         self.coord = self.get_coordinates() #dictionary with key - node, value - coords
+        self.profit = 0
         self.costs = self.get_costs() #dictionary with key - set of nodes, value - cost to go between
         self.preList = self.set_paths() #dictionary with key - start node, value - predacessor dictionary to recreate paths
         self.productionLines = self.set_productionLines2(self.getProductionLines()) #dictionary with key - type of line and value - list of production line objects
-        self.warehouses = self.set_warehouses(self.getLocationOfWarehouses()) #dicitionary with key - type of material at warehouse and value - list of warehouse objects
+        self.warehouses = self.set_warehouses(self.getLocationOfWarehouses()) #dictionary with key - type of material at warehouse and value - list of warehouse objects
         self.van = pygame.image.load("mysteryMachine.png").convert() #van load the image
         self.van = pygame.transform.scale(self.van, (10,10)) #scale the van for animation
         self.trucks = None #the trucks included in the world
         
     def get_coordinates(self): #method to create the coordinate dictionary
         coords = {} #initialize
-        for i in self.Verticies: #go through verticies
+        for i in self.Verticies: #go through vertices
             coords[i[0]] = (i[1],i[2]) #add coordinates
         return coords #return the dictionary
     
     def get_costs(self): #method to create costs dictionary
-        costs = defaultdict(lambda: 10000) #default dic w lambda at "infinity"
+        maxCost =0
+        edge = None
+        costs = defaultdict(lambda: 1000) #default dic w lambda at "infinity"
+        costForTrain = {}
         for i in self.Edges: #go through edges
             costs[(i[0],i[1])] = i[2] #put in the cost
             costs[(i[1],i[0])] = i[2]
+            if i[4] == 'B':
+                print ("i: ", i)
+                print("i2: ", i[2])
+                costForTrain[(i[0],i[1], i[2])] = i[2] #put in the cost
         for i in self.Verticies: #go through verticies
             costs[(i[0], i[0])] = 0 #cost from self to self
+        totalSpending = 0
+        '''
+        while totalSpending <= 100000000 and costForTrain[max(costForTrain.keys())] > 2:
+            totalSpending += costForTrain[max(costForTrain.keys())]*1000000
+            if totalSpending > 100000000:
+                break
+            self.profit -= costForTrain[max(costForTrain.keys())]*1000000
+            max(costForTrain.keys())[2] = 2
+            costs[(max(costForTrain.keys())[0], max(costForTrain.keys())[1])] = 2
+            costs[(max(costForTrain.keys())[1], max(costForTrain.keys())[0])] = 2
+        '''
+        print ("this guy: ", costs[max(costs.keys())])
+        print("that guy: ", max(costs.keys()))
+        print(costs[(229,229)])
+        print("Costs: ", costs)
+        while totalSpending <= 100000000 and costs[max(costs.keys())] > 2:
+            totalSpending += costs[max(costs.keys())]*1000000
+            if totalSpending > 100000000:
+                break
+            self.profit -= costs[max(costs.keys())]*1000000
+            edge = None
+            for i in self.Edges:
+                if max(costs.keys())[0] == i[0] and max(costs.keys())[1] == i[1]:
+                    edge = i
+                    break
+            edge[2] = 2
+            costs[(max(costs.keys())[0], max(costs.keys()[1]))] = 2
+            costs[(max(costs.keys())[1], max(costs.keys()[0]))] = 2
         return costs #return the dictionary
+    
     
     def get_vert(self):
         return self.Verticies
@@ -115,6 +152,12 @@ class World(AbstractWorld):
             end = n #set end to be node n
         return pathList #return the path
     
+    def get_path_length(self, path): # method to get the length of the path
+        pathLength = 0
+        for i in range(len(path)-1):
+            pathLength += self.costs[(path[i], path[i+1])]
+        return pathLength
+    
     def set_productionLines2(self, lineList):
         for i in lineList:
             line = ProductionLines(i['type'], i['location'], i['capacityOfMaterial[tons]'])
@@ -176,6 +219,7 @@ class World(AbstractWorld):
         
         for t in range(initialTime,finalTime):    
             print("\n\n Time: %02d:%02d"%(t/60, t%60))
+            print("T: ", t)
             # each minute we can get a few new orders
             newOrders = self.getNewOrdersForGivenTime(t) #get the new orders
             num = len(newOrders) #get number of new orders
@@ -183,7 +227,8 @@ class World(AbstractWorld):
             # create lists to hold the starting and ending vertex of the orders
             for i in newOrders: #go through all new orders
                 #set the starting (random) and ending (given)
-                #print ("PROD PROCESS: ", i.getProductionProcess())
+                i.set_start_time(t)
+                print ("PROD PROCESS: ", i.getProductionProcess())
                 values = self.get_production(i)
                 #print("WAREHOUSES (me): ", self.warehouses)
                 #print("PRODUCTION LINES (me): ", self.productionLines)
@@ -191,9 +236,8 @@ class World(AbstractWorld):
                 i.setStart(random.choice(self.Verticies)) #start is random
                 #assign a truck to the order
                 orderTruck = self.get_truck_for_order(i.getStart()) #get the truck closest to start
-                i.setTruck2(orderTruck) #set the order's truck
+                i.setTruck(orderTruck) #set the order's truck
                 orderTruck.add_order(i) #add the order to the truck
-                (i.getTruck()).add_order(i.getID()) #add the order to the truck
                 currentTrucks.append(i.getTruck())
                 fullPath=deque() #initialize list to hold full path of order
                 locationPath = self.get_location_path(i)
@@ -208,7 +252,8 @@ class World(AbstractWorld):
                             del tempPath[0] #remove first node in path so we don't double count it
                         fullPath += tempPath #combine the temporary path with the full path
                 i.setPath(fullPath)
-                (i.getTruck()).add_path(fullPath, self.costs, self.coord) #add the path for the order to the path for the truck
+                coordPath = (i.getTruck()).add_path(fullPath, self.costs, self.coord, i.getID()) #add the path for the order to the path for the truck
+                i.setCoordPath(coordPath)
                 currentOrders.append(i) #add the order to the list of current orders
             
             #print out the new orders
@@ -248,18 +293,33 @@ class World(AbstractWorld):
                         k.set_position(truckVertex)
                         if currentVertex[1] == 2:
                             order = k.get_current_order()
+                            #print ("order ID: ", order.getID())
+                            print("COORD PATH: ", order.getCoordPath())
                             currentOrders.remove(order)
                             finishedOrders.append(order)
+                            #print("ORDER TIME: ", t-order.get_start_time())
+                            #pygame.time.delay(3000)
+                            if t - order.get_start_time() >= 90:
+                                order.add_cost(100000 + 100000*((t-order.get_start_time())-90)//30)
+                            self.profit = self.profit + 1500000 - order.get_cost()
+                                
                     x = currentVertex[0][0] #get the coordinates of the current vertex
                     y = currentVertex[0][1]
                     #pygame.time.delay(500)
                     self.screen.blit(self.van, ((self.width*x/maxX)*self.scale - 5, 
                                       (self.height*y/maxY)*self.scale - 5))
+            
+            #print ("profit: ", profit)
+            text2 = self.font.render("Profit: $%02d"%(self.profit), True, (255, 0, 0), (255, 255, 255))
+            textrect2 = text.get_rect()
+            textrect2.centerx = 600
+            textrect2.centery = 30
 
             print("CURRENT ORDERS: ", currentOrders)
             print("FINISHED ORDERS: ", finishedOrders)
 
             self.screen.blit(text, textrect)
+            self.screen.blit(text2, textrect2)
  
             
             '''
@@ -273,6 +333,8 @@ class World(AbstractWorld):
                 pass   
             self.clock.tick(fps)
             
+        print ("FINAL PROFIT: ", profit)
+            
     def get_truck_for_order(self, orderStart): #method to find the nearest truck to an order
         truckPath = None
         truckChoice = None
@@ -281,7 +343,8 @@ class World(AbstractWorld):
             if len(i.get_coordPath()) == 0: # look at trucks that aren't currently busy
                 counter+=1 #increment counter
                 path = self.get_path(orderStart, i.get_position()) #get a path from order to truck position
-                if truckPath == None or len(path) < len(truckPath):
+                pathL = self.get_path_length(path)
+                if truckPath == None or pathL < self.get_path_length(truckPath):
                     truckPath = path
                     truckChoice = i
         if counter == 0: #if there were no non busy trucks
@@ -295,14 +358,20 @@ class World(AbstractWorld):
     
     def get_location_path(self, order):
         locationPath = deque()
+        pathToStart = None
         #put in the truck's initial location
         if len(order.truck.get_path()) == 0: #if the path isn't already on the go
             locationPath.append([order.truck.get_position(), 'truckOnWay']) #it will start at it's current position
+            pathToStart = self.get_path(order.truck.get_position(), order.getStart())
         else: #if it is already in route somewhere
             locationPath.append([order.truck.get_path()[-1], 'truckOnWay']) #it will start when it ends it's last route
+            pathToStart = self.get_path(order.truck.get_path()[-1], order.getStart())
+        toOrderStartLength = self.get_path_length(pathToStart)
+        order.add_cost(toOrderStartLength*50) #cost of moving truck to start of order with no materials
         #put in the start
         locationPath.append([order.getStart(), 'orderStart'])
         #put in each of the lines
+        lineChoice = None
         for i in order.getProductionProcess(): #go through each step of the production process
             #figure out which warehouses to go to by shortest path
             resourceNeeded = i['resourceNeeded'] #get the resource needed for the process
@@ -311,27 +380,37 @@ class World(AbstractWorld):
             warehouseChoice = None #initialize choice of warehouse
             for j in warehouseOptions: #go through all the options
                 path = self.get_path(locationPath[-1][0], j.get_location())
-                if warehousePath == None or len(path) < len(warehousePath): #if first or if the length is shorter than the current shortest
+                pathL = self.get_path_length(path)
+                if warehousePath == None or pathL < self.get_path_length(warehousePath): #if first or if the length is shorter than the current shortest
                     warehousePath = path #set the shortest to current path
                     warehouseChoice = j #set the warehouse to the current warehouse
+            toWarehousePathLength = self.get_path_length(warehousePath) #get cost to move to warehouse
+            order.add_cost(toWarehousePathLength*50) #cost of moving truck to warehouse with no materials
             assignedWarehouseLocation = warehouseChoice.get_location() #get location of closest warehouse
             locationPath.append([assignedWarehouseLocation, 'warehouse']) #append the nearest warehouse
             #figure out which line to go to by shortest path
             lineOptions = self.productionLines[i['processinLine']] #get lines that match the process needed
             linePath = None #initialize path to line and choice of line
-            lineChoice = None
             for j in lineOptions: #go through all the options
                 path = self.get_path(locationPath[-1][0], j.get_location()) #get the path to each one
-                if linePath == None or len(path) < len(linePath): #if the first or the length is shorter
+                pathL = self.get_path_length(path)
+                if linePath == None or pathL < self.get_path_length(linePath): #if the first or the length is shorter
                     linePath = path #set the line path to the shortest path
                     lineChoice = j #set the choice of line
+            toLinePathLength = self.get_path_length(linePath)
+            order.add_cost(toLinePathLength*(50+5*i['materialNeeded[tons]']))
             assignedLineLocation = lineChoice.get_location() #
             locationPath.append([assignedLineLocation, 'line']) #append location of line
             for j in range(i['processingTime']): #add the location multiple times to represent processing time
                 locationPath.append([assignedLineLocation, 'line'])
-
+        
+        pathToEnd = self.get_path(lineChoice.get_location(), order.getFinalLocation())
+        toOrderEndLength = self.get_path_length(pathToEnd)
+        order.add_cost(toOrderEndLength*50) #cost of moving truck to end location
+        
         #put in the end
         locationPath.append([order.getFinalLocation(), 'orderEnd'])
         order.setLocationPath(locationPath)
+        #print ("TRANSPORTATION COST FOR ORDER: ", order.get_cost())
         return locationPath
         
