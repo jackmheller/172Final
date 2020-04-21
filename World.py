@@ -34,6 +34,10 @@ class World(AbstractWorld):
         self.warehouses = self.set_warehouses(self.getLocationOfWarehouses()) #dictionary with key - type of material at warehouse and value - list of warehouse objects
         self.van = pygame.image.load("mysteryMachine.png").convert() #van load the image
         self.van = pygame.transform.scale(self.van, (10,10)) #scale the van for animation
+        self.factory = pygame.image.load("factory.png").convert()
+        self.factory = pygame.transform.scale(self.factory, (10,10))
+        self.warehouse = pygame.image.load("warehouse.png").convert()
+        self.warehouse = pygame.transform.scale(self.warehouse, (10,10))
         self.trucks = None #the trucks included in the world
         
     def get_coordinates(self): #method to create the coordinate dictionary
@@ -67,10 +71,7 @@ class World(AbstractWorld):
             costs[(max(costForTrain.keys())[0], max(costForTrain.keys())[1])] = 2
             costs[(max(costForTrain.keys())[1], max(costForTrain.keys())[0])] = 2
         '''
-        print ("this guy: ", costs[max(costs.keys())])
-        print("that guy: ", max(costs.keys()))
-        print(costs[(229,229)])
-        print("Costs: ", costs)
+
         while totalSpending <= 100000000 and costs[max(costs.keys())] > 2:
             totalSpending += costs[max(costs.keys())]*1000000
             if totalSpending > 100000000:
@@ -169,8 +170,6 @@ class World(AbstractWorld):
             whouse = Warehouses(i['type'], i['location'])
         whouse = Warehouses()
         return whouse.get_warehousedic()
-    
-    
     
     def find_vehicle(self, trucks):
         return random.choice(trucks)
@@ -280,7 +279,18 @@ class World(AbstractWorld):
                     pygame.draw.line(self.screen, (255,0,0), 
                                  ((self.width*self.Edges[j][3][k][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k][1]/maxY)*self.scale), 
                                   ((self.width*self.Edges[j][3][k+1][0]/maxX)*self.scale, (self.height*self.Edges[j][3][k+1][1]/maxY)*self.scale), 2)
-       
+            for z in self.getLocationOfWarehouses():
+                node = z['location']
+                warehouse = self.coord[node]
+                self.screen.blit(self.warehouse, ((self.width*warehouse[0]/maxX)*self.scale - 5, 
+                                      (self.height*warehouse[1]/maxY)*self.scale - 5))
+                
+            for x in self.getProductionLines():
+                node = x['location']
+                productionLine = self.coord[node]
+                self.screen.blit(self.factory, ((self.width*productionLine[0]/maxX)*self.scale - 5, 
+                                      (self.height*productionLine[1]/maxY)*self.scale - 5))   
+                             
             #DRAWING THE MOVING ORDERS AS WHITE
             for k in trucks: #go through current orders
                 path = k.get_coordPath() #get the path of the truck as a queue
@@ -413,4 +423,3 @@ class World(AbstractWorld):
         order.setLocationPath(locationPath)
         #print ("TRANSPORTATION COST FOR ORDER: ", order.get_cost())
         return locationPath
-        
