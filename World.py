@@ -309,8 +309,8 @@ class World(AbstractWorld):
                             finishedOrders.append(order)
                             #print("ORDER TIME: ", t-order.get_start_time())
                             #pygame.time.delay(3000)
-                            if t - order.get_start_time() >= 90:
-                                order.add_cost(100000 + 100000*((t-order.get_start_time())-90)//30)
+                            if t - order.get_start_time() >= 60:
+                                order.add_cost(100000 + 100000*((t-order.get_start_time())-60)//30)
                             self.profit = self.profit + 1500000 - order.get_cost()
                                 
                     x = currentVertex[0][0] #get the coordinates of the current vertex
